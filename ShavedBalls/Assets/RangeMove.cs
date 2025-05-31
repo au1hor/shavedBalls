@@ -27,9 +27,9 @@ public class RangeMove : MonoBehaviour
     public CanvasGroup PointsCanvasGroup;
 
     public float duracao = 1f;
-     public float duracao2 = 1f;
-    public float distancia = 5f;
-    public float distancia2 = -5f;
+     public float duracao2 = 0.1f;
+    public float distancia = 2f;
+    public float distancia2 = 10f;
 
     void Start()
     {
@@ -80,7 +80,6 @@ public class RangeMove : MonoBehaviour
     void NextRange()
     {
         points += 1;
-        Debug.Log("oieee");
         speedTarget = UnityEngine.Random.Range(0, 100);
         range2.transform.Rotate(0, 0, speedTarget);
         PointsText.text = points.ToString();
@@ -112,22 +111,17 @@ public class RangeMove : MonoBehaviour
     private System.Collections.IEnumerator AnimarPoints()
     {
         Vector2 inicialPos = PointsRect.anchoredPosition;
-
         Vector2 pointsDir = inicialPos - new Vector2(0, distancia2);
         float tempo2 = 0;
+
         while (tempo2 < duracao2)
         {
             tempo2 += Time.deltaTime;
             float t2 = tempo2 / duracao2;
-
-            decressLifeRect.anchoredPosition = Vector2.Lerp(inicialPos, pointsDir, t2);
-            PointsCanvasGroup.alpha = Mathf.Lerp(1, 0, t2);
+            PointsRect.anchoredPosition = Vector2.Lerp(inicialPos, pointsDir, t2);
+            PointsText.color = Color.red;
             yield return null;
         }
-        PointsRect.anchoredPosition = pointsDir;
-        canvasGroup.alpha = 1;
         PointsRect.anchoredPosition = inicialPos;
-        PointsRect.gameObject.SetActive(false);
-        
     }
 }
