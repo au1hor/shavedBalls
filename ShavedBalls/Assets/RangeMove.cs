@@ -26,10 +26,16 @@ public class RangeMove : MonoBehaviour
     public RectTransform PointsRect;
     public CanvasGroup PointsCanvasGroup;
 
+    public TextMeshProUGUI comboText;
+    public RectTransform comboRect;
+    public CanvasGroup comboGroup;
+
     public float duracao = 1f;
-     public float duracao2 = 0.1f;
+    public float duracao2 = 0.1f;
     public float distancia = 2f;
     public float distancia2 = 10f;
+
+    public int pointsContinus = 0;
 
     void Start()
     {
@@ -39,6 +45,7 @@ public class RangeMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        comboText.text = "INSANE "+ System.Environment.NewLine + pointsContinus;
         if (lifes == 0)
         {
             GameRestart();
@@ -48,7 +55,7 @@ public class RangeMove : MonoBehaviour
         Vector3 euler1 = transform.eulerAngles;
         Vector3 eulerRange = range2.transform.rotation.eulerAngles;
         Vector3 distance = euler1 - eulerRange;
-        rotaZ = distance.z;
+        rotaZ = Mathf.DeltaAngle(euler1.z,eulerRange.z);
         if (Input.GetKeyDown(KeyCode.Space))
         {
             dir *= -1;
@@ -59,15 +66,19 @@ public class RangeMove : MonoBehaviour
                 PointsRect.gameObject.SetActive(true);
                 NextRange();
                 StartCoroutine(AnimarPoints());
+                StartCoroutine(AnimarCombo());
+
             }
             else
             {
+                 comboText.gameObject.SetActive(false);
                 decressLife.gameObject.SetActive(true);
                 lifes -= 1;
                 canvasGroup.alpha = 1;
                 decressLife.text = "-1";
                 StartCoroutine(AnimarLife());
                 lifesTexts.text = "Vidas =  " + lifes;
+                pointsContinus = 0;
             }
         }
         else
@@ -79,7 +90,15 @@ public class RangeMove : MonoBehaviour
 
     void NextRange()
     {
-        points += 1;
+        if (pointsContinus > 1)
+        {
+            points += 1 * pointsContinus;
+        }else
+        {
+            points += 1;
+        }
+        
+        pointsContinus += 1;
         speedTarget = UnityEngine.Random.Range(0, 100);
         range2.transform.Rotate(0, 0, speedTarget);
         PointsText.text = points.ToString();
@@ -123,5 +142,41 @@ public class RangeMove : MonoBehaviour
             yield return null;
         }
         PointsRect.anchoredPosition = inicialPos;
+    }
+    /*
+    declarar a posição atual do alvo coo um vector 2d
+    declarar o destino do alvo pela diferença entre a posição inicial e a distancia que quer chegar x,y como um vector 2d
+    declarara a variavel do tempo
+    enquanto o tempo declarado for menor que a  duração 
+    aumentar o tempo com o deltatime
+
+    */
+    private System.Collections.IEnumerator AnimarCombo()
+    {
+        
+        if (pointsContinus > 1)
+        {
+            comboText.gameObject.SetActive(true);
+
+
+            float fontInicialSize = comboText.fontSize;
+            float fontTamanhoMaximo = 79f;
+            Vector2 inicialPosCombo = comboRect.anchoredPosition;
+            Vector2 destinoCombo = inicialPosCombo - new Vector2(distancia2, distancia2);
+
+            float tempo3 = 0;
+            while (tempo3 < duracao2)
+            {
+                tempo3 += Time.deltaTime;
+                float t3 = tempo3 / duracao2;
+                comboRect.anchoredPosition = Vector2.Lerp(inicialPosCombo, destinoCombo, t3);
+                comboText.fontSize = Mathf.Lerp(fontInicialSize, fontTamanhoMaximo, t3);
+                yield return null;
+
+            }
+            comboText.fontSize = fontInicialSize;
+
+        }
+       
     }
 }
