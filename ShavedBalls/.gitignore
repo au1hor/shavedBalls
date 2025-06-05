@@ -22,3 +22,13 @@ UserSettings/
 *.VC.db
 *.pidb.meta
 *.bak
+# Ignora tudo dentro de Assets, exceto scripts
+Assets/*
+!Assets/*.cs
+!Assets/**/*.cs
+
+# Ignora as pastas do TextMesh Pro e outras geradas
+Assets/TextMesh Pro/
+Assets/Settings/
+Assets/Scenes/
+Assets/Lit2DSceneTemplate.scenetemplate

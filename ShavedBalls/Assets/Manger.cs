@@ -23,4 +23,5 @@ public class Manger : MonoBehaviour
         gameplay.gameObject.SetActive(true);
 
     }
+    
 }

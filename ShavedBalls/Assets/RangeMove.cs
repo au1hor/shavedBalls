@@ -8,6 +8,7 @@ using UnityEngine.UI;
 
 public class RangeMove : MonoBehaviour
 {
+     public GameObject gameOver;
     public GameObject range2;
     public TextMeshProUGUI PointsText;
     public Boolean apertou = false;
@@ -21,8 +22,10 @@ public class RangeMove : MonoBehaviour
     public TextMeshProUGUI decressLife;
     public Text lifesTexts;
     private float speedTarget = 30;
+
     public RectTransform decressLifeRect;
     public CanvasGroup LifeCanvasGroup;
+
     public RectTransform PointsRect;
     public CanvasGroup PointsCanvasGroup;
 
@@ -31,12 +34,14 @@ public class RangeMove : MonoBehaviour
     public CanvasGroup comboGroup;
 
 
-    public float duracaoLife = 1f;
-    public float distanciaLife = 2f;
-    public float duracaoPoints = 1f;
-    public float distanciaPoints = 2f;
-    public float duracaoCombo = 0.1f;
-    public float distanciaCombo = 10f;
+    public struct AnimationConfig
+    {
+        public RectTransform rectTransform;
+        public CanvasGroup canvasGroup;
+        public float duracao;
+        public float distancia;
+        public bool alphaChange;
+    }
 
     public int pointsContinus = 0;
 
@@ -44,9 +49,33 @@ public class RangeMove : MonoBehaviour
     public AudioClip soundEfect;
     public string NomeBrabo = "normal";
 
+    private AnimationConfig lifeConfig;
+    private AnimationConfig pointsConfig;
+
+    public float StartFontInicial = 36f;
+
+
     void Start()
     {
+        lifeConfig = new AnimationConfig
+        {
+            rectTransform = decressLifeRect,
+            canvasGroup = LifeCanvasGroup,
+            duracao = 1f,
+            distancia = 2f,
+            alphaChange = true
+        };
+        pointsConfig = new AnimationConfig
+        {
+            rectTransform = PointsRect,
+            canvasGroup = PointsCanvasGroup,
+            duracao = 0.1f,
+            distancia = 10f,
+            
+        };
         
+        
+
     }
 
     // Update is called once per frame
@@ -55,7 +84,8 @@ public class RangeMove : MonoBehaviour
         comboText.text = NomeBrabo + System.Environment.NewLine + pointsContinus;
         if (lifes == 0)
         {
-            GameRestart();
+
+            gameOver.gameObject.SetActive(true);
             return;
         }
         PointsText.text = points.ToString();
@@ -72,8 +102,8 @@ public class RangeMove : MonoBehaviour
             {
                 PointsRect.gameObject.SetActive(true);
                 NextRange();
-                StartCoroutine(Animar(PointsRect,PointsCanvasGroup,duracaoCombo,distanciaCombo,false));
-                StartCoroutine(AnimarCombo());
+                StartCoroutine(Animar(pointsConfig.rectTransform, pointsConfig.canvasGroup, pointsConfig.duracao, pointsConfig.distancia));
+
 
             }
             else
@@ -83,9 +113,12 @@ public class RangeMove : MonoBehaviour
                 lifes -= 1;
                 LifeCanvasGroup.alpha = 1;
                 decressLife.text = "-1";
-                StartCoroutine(Animar(decressLifeRect,LifeCanvasGroup,duracaoLife,distanciaLife,true));
+                StartCoroutine(Animar(lifeConfig.rectTransform, LifeCanvasGroup, lifeConfig.duracao, lifeConfig.distancia, lifeConfig.alphaChange));
                 lifesTexts.text = "Vidas =  " + lifes;
                 pointsContinus = 0;
+            
+                
+                
             }
         }
         else
@@ -111,20 +144,20 @@ public class RangeMove : MonoBehaviour
         range2.transform.Rotate(0, 0, speedTarget);
         PointsText.text = points.ToString();
         string cor;
-        if (pointsContinus > 10 && pointsContinus < 20)
+        if (pointsContinus >= 10 && pointsContinus < 20)
         {
             cor = "verdeClaro";
         }
-        else if (pointsContinus > 19 && pointsContinus <= 29)
+        else if (pointsContinus >= 20 && pointsContinus <= 29)
         {
             cor = "azulClaro";
         }
-        else if (pointsContinus >= 30 && pointsContinus < 49)
+        else if (pointsContinus >= 30 && pointsContinus <= 49)
         {
             cor = "amareloClaro";
 
         }
-        else if (pointsContinus >= 49)
+        else if (pointsContinus >= 50)
         {
             cor = "vermelho";
         }
@@ -136,41 +169,39 @@ public class RangeMove : MonoBehaviour
         MudarCor(comboText, cor);
         audioSource.PlayOneShot(soundEfect);
     }
-    void GameRestart()
+   
+    private System.Collections.IEnumerator Animar(RectTransform rectTransform, CanvasGroup canvasGroup, float duracao, float distancia, bool alphaMode = false, GameObject gameObject = null, float StartFontSize = 36)
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-    }
-    /*private System.Collections.IEnumerator AnimarLife()
-    {
-        Vector2 posInicial = decressLifeRect.anchoredPosition;
-        Vector2 posDest = posInicial - new Vector2(0, distancia);
-        float tempo = 0;
-        while (tempo < duracao)
-        {
-            tempo += Time.deltaTime;
-            float t = tempo / duracao;
-
-            decressLifeRect.anchoredPosition = Vector2.Lerp(posInicial, posDest, t);
-            canvasGroup.alpha = Mathf.Lerp(1, 0, t);
-            yield return null;
-        }
-        decressLifeRect.anchoredPosition = posDest;
-        canvasGroup.alpha = 0;
-        decressLifeRect.anchoredPosition = posInicial;
-        decressLife.gameObject.SetActive(false);
-
-    }
-    */
-    private System.Collections.IEnumerator Animar(RectTransform rectTransform, CanvasGroup canvasGroup, float duracao, float distancia, bool alphaMode, GameObject gameObject = null)
-    {
+        
         Vector2 inicialPos = rectTransform.anchoredPosition;
         Vector2 posDest = inicialPos - new Vector2(0, distancia);
+       
         float tempo = 0;
+       
+        float InicialSize = comboText.fontSize;
+        float fontTamanhoMaximo = 79f;
+
         while (tempo < duracao)
         {
+
             tempo += Time.deltaTime;
             float t = tempo / duracao;
             rectTransform.anchoredPosition = Vector2.Lerp(inicialPos, posDest, t);
+
+            if (pointsContinus >= 2)
+            {
+
+                comboText.gameObject.SetActive(true);
+                comboText.fontSize = Mathf.Lerp(InicialSize, fontTamanhoMaximo, t);
+
+            }
+            else
+            {
+                comboText.gameObject.SetActive(false);
+                InicialSize = StartFontInicial;
+            }
+
+
             if (alphaMode)
             {
                 canvasGroup.alpha = Mathf.Lerp(1, 0, t);
@@ -179,6 +210,10 @@ public class RangeMove : MonoBehaviour
 
         }
         rectTransform.anchoredPosition = inicialPos;
+        InicialSize += pointsContinus / 10;
+        comboText.fontSize = InicialSize;
+        
+
         if (alphaMode)
         {
             canvasGroup.alpha = 0;
@@ -189,52 +224,6 @@ public class RangeMove : MonoBehaviour
             gameObject.SetActive(false);
         }
      }
-/*    private System.Collections.IEnumerator AnimarPoints()
-    {
-        Vector2 inicialPos = PointsRect.anchoredPosition;
-        Vector2 pointsDir = inicialPos - new Vector2(0, distancia2);
-        float tempo2 = 0;
-
-        while (tempo2 < duracao2)
-        {
-            tempo2 += Time.deltaTime;
-            float t2 = tempo2 / duracao2;
-            PointsRect.anchoredPosition = Vector2.Lerp(inicialPos, pointsDir, t2);
-            PointsText.color = Color.red;
-            yield return null;
-        }
-        PointsRect.anchoredPosition = inicialPos;
-    }
-    */
-    private System.Collections.IEnumerator AnimarCombo()
-
-    {
-
-        if (pointsContinus > 1)
-        {
-            comboText.gameObject.SetActive(true);
-
-
-            float fontInicialSize = comboText.fontSize;
-            float fontTamanhoMaximo = 79f;
-            Vector2 inicialPosCombo = comboRect.anchoredPosition;
-            Vector2 destinoCombo = inicialPosCombo - new Vector2(distanciaCombo, distanciaCombo);
-
-            float tempo3 = 0;
-            while (tempo3 < duracaoCombo)
-            {
-                tempo3 += Time.deltaTime;
-                float t3 = tempo3 / duracaoCombo;
-                comboRect.anchoredPosition = Vector2.Lerp(inicialPosCombo, destinoCombo, t3);
-                comboText.fontSize = Mathf.Lerp(fontInicialSize, fontTamanhoMaximo, t3);
-                yield return null;
-
-            }
-            comboText.fontSize = fontInicialSize;
-
-        }
-
-    }
     public Color HexToColor(string Hex)
     {
         Color cor; // declarar a varialvel cor
